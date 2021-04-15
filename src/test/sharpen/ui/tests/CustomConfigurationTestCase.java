@@ -40,38 +40,22 @@ public class CustomConfigurationTestCase extends AbstractConversionTestCase {
 		_project.setclassPath(_configJars);
 
 		_progressMonitor = new IProgressMonitor() {
-			@Override
-			public void beginTask(String s, int i) {
-			}
+			// @Override for interface can no longer be used in newer JDK version? 
+			public void beginTask(String s, int i) { }
 
-			@Override
-			public void done() {
-			}
+			public void done() { }
 
-			@Override
-			public void internalWorked(double v) {
-			}
+			public void internalWorked(double v) { }
 
-			@Override
-			public boolean isCanceled() {
-				return false;
-			}
+			public boolean isCanceled() { return false; }
 
-			@Override
-			public void setCanceled(boolean b) {
-			}
+			public void setCanceled(boolean b) { }
 
-			@Override
-			public void setTaskName(String s) {
-			}
+			public void setTaskName(String s) { }
 
-			@Override
-			public void subTask(String s) {
-			}
+			public void subTask(String s) { }
 
-			@Override
-			public void worked(int i) {
-			}
+			public void worked(int i) { }
 		};
 	}
 
@@ -123,7 +107,8 @@ public class CustomConfigurationTestCase extends AbstractConversionTestCase {
 	@Test
 	public void throwsExceptionIfClassNotExtendsConfiguration() throws Exception {
 		try {
-			Configuration config = ConfigurationFactory.newExternalConfiguration(WrongConfiguration.class.getName(), null, _progressMonitor);
+			// Configuration config =    : this suppress Eclipse warning
+			ConfigurationFactory.newExternalConfiguration(WrongConfiguration.class.getName(), null, _progressMonitor);
 			Assert.fail("Factory must throw exception");
 		}
 		catch (Exception ex){
@@ -134,7 +119,8 @@ public class CustomConfigurationTestCase extends AbstractConversionTestCase {
 	@Test
 	public void throwsExceptionIfClassHasNotPublicConstructor() {
 		try {
-			Configuration config = ConfigurationFactory.newExternalConfiguration(NoPublicConstructorConfiguration.class.getName(), null, _progressMonitor);
+			// Configuration config =    : this suppress Eclipse warning
+			ConfigurationFactory.newExternalConfiguration(NoPublicConstructorConfiguration.class.getName(), null, _progressMonitor);
 			Assert.fail("Factory must throw exception");
 		}
 		catch (Exception ex){

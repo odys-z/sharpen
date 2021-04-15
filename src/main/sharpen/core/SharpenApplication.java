@@ -260,7 +260,7 @@ public class SharpenApplication {
 		jpCmd.setProjectName(_args.project);
 		jpCmd.setProjectPath(_args.projectPath);
 		jpCmd.setSourceFolder(_args.sourceFolders);
-		jpCmd.setclassPath(_args.classpath);
+		jpCmd.setclassPath(_args.classpath); // ody: should also load $JAVA_HOME or environment variables?
 		return jpCmd;
 	}
 	

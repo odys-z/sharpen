@@ -66,6 +66,10 @@ public class TestCaseResource {
 		this(path, path);
 	}
 	
+	/**Load and assert expected contents according to actual contents. (path already known)
+	 * @param actualContents
+	 * @throws IOException
+	 */
 	public void assertExpectedContent(String actualContents) throws IOException {
 
 		StringAssert.assertEqualLines(expectedStringContents(), actualContents);

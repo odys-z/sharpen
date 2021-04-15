@@ -24,7 +24,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 package sharpen.ui.tests;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 public class StringAssert {
 

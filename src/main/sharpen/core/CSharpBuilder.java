@@ -3707,6 +3707,9 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	private void unsupportedConstruct(ASTNode node, Exception cause) {
+		Class clz = this.getClass();
+		String name = clz.getName();
+
 		unsupportedConstruct(node, "failed to map: '" + node + "'", cause);
 	}
 

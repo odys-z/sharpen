@@ -22,7 +22,6 @@ public abstract class ConversionBatch {
 		_parser = ASTParser.newParser(AST.JLS4);
 		_parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		
-		@SuppressWarnings("unchecked")
 		Map<String, String> options = JavaCore.getOptions();
 		options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_7);
 		options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM,
@@ -92,7 +91,9 @@ public abstract class ConversionBatch {
 	}
 
 	public void setclassPathEntries(List<String> classPathEntries) {
-		if (null != classPathEntries || classPathEntries.isEmpty() ==false) {
+		// ody: supposing this is a bug
+//		if (null != classPathEntries || classPathEntries.isEmpty() ==false) {
+		if (null != classPathEntries && classPathEntries.isEmpty() ==false) {
 			_classPathEntries= classPathEntries.toArray(new String[classPathEntries.size()]);
 		}
 	}

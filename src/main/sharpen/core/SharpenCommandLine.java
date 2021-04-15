@@ -25,6 +25,8 @@ import java.util.*;
 
 public class SharpenCommandLine {
 	
+	public static final String opt_cp = "cp";
+	
 	public static SharpenCommandLine parse(String[] args) {
 		return new SharpenCommandLineParser(args).commandLine();
 	}

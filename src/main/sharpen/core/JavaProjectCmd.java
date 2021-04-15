@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jdt.core.JavaModelException;
@@ -68,6 +69,12 @@ public class JavaProjectCmd {
 			classPath.add(cPath);
 		}
 	}
+
+	public JavaProjectCmd setclassPath(String[] classPaths) {
+		setclassPath(Arrays.asList(classPaths));
+		return this;
+	}
+
 	List<String> getAllCompilationUnits() throws JavaModelException
 	{
 		String pathForsourcefile = sourceFolder;	
@@ -122,7 +129,7 @@ public class JavaProjectCmd {
 		  }
 		  if (!f.delete())
 		    throw new FileNotFoundException("Failed to delete file: " + f);
-		}
+	}
 	
 	public void deleteProject() {
 			String target = projectPath;
@@ -131,7 +138,6 @@ public class JavaProjectCmd {
 				try {
 					delete(targetfile);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}		

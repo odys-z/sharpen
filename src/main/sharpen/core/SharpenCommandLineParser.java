@@ -27,7 +27,7 @@ import sharpen.core.framework.*;
 import sharpen.core.io.IO;
 
 class SharpenCommandLineParser extends CommandLineParser {
-	
+
 	private final SharpenCommandLine _cmdLine;
 	
 	public SharpenCommandLineParser(String[] args) {
@@ -85,7 +85,7 @@ class SharpenCommandLineParser extends CommandLineParser {
 			_cmdLine.pascalCase = SharpenCommandLine.PascalCaseOptions.Identifiers;
 		} else if (areEqual(arg, "-pascalCase+")) {
 			_cmdLine.pascalCase = SharpenCommandLine.PascalCaseOptions.NamespaceAndIdentifiers;			 
-		} else if (areEqual(arg, "-cp")) {
+		} else if (areEqual(arg, "-" + SharpenCommandLine.opt_cp)) {
 			_cmdLine.classpath.add(consumeNext());
 		} else if (areEqual(arg, "-srcFolder")) {
 			_cmdLine.sourceFolders.add(consumeNext());

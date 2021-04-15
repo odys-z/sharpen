@@ -37,9 +37,9 @@ public abstract class AbstractConversionTestCase  {
 	protected JavaProjectCmd _project;
 	private String projectName="DPrj";
 	//To Run from MAVEN
-	protected String projecttempLocation = System.getProperty("user.dir") + "/sharpen.core/target/testcases";
+	// protected String projecttempLocation = System.getProperty("user.dir") + "/sharpen.core/target/testcases";
 	//To Run From Eclipse GUI
-	//protected String projecttempLocation = System.getProperty("user.dir") + "/sharpen.ui.tests/testcases";
+	protected String projecttempLocation = System.getProperty("user.dir") + "/sharpen.ui.tests/testcases";
 	@Before
 	public void setUp() throws Exception {
 		Sharpen.getDefault().configuration(configuration());
@@ -69,7 +69,16 @@ public abstract class AbstractConversionTestCase  {
 		{
 			sourcePackagePath.mkdirs();
 		}
-		return _project.createCompilationUnit(sourcePackage, resource.javaFileName(), resource.actualStringContents());
+
+		// return _project.createCompilationUnit(sourcePackage, resource.javaFileName(), resource.actualStringContents());
+		String cp = System.getProperty(SharpenCommandLine.opt_cp);
+		if (cp == null)
+			return _project
+				.createCompilationUnit(sourcePackage, resource.javaFileName(), resource.actualStringContents());
+
+		String[] classpaths = cp.split(" ");
+		return _project.setclassPath(classpaths)
+				.createCompilationUnit(sourcePackage, resource.javaFileName(), resource.actualStringContents());
 	}
 	
 	protected String createCompilationUnit(TestCaseResource resource, String targetProject) throws IOException  {
@@ -81,7 +90,16 @@ public abstract class AbstractConversionTestCase  {
 		{
 			sourcePackagePath.mkdirs();
 		}
-		return _project.createCompilationUnit(sourcePackage, resource.javaFileName(), resource.actualStringContents());
+
+		// return _project.createCompilationUnit(sourcePackage, resource.javaFileName(), resource.actualStringContents());
+		String cp = System.getProperty(SharpenCommandLine.opt_cp);
+		if (cp == null)
+			return _project
+				.createCompilationUnit(sourcePackage, resource.javaFileName(), resource.actualStringContents());
+
+		String[] classpaths = cp.split(" ");
+		return _project.setclassPath(classpaths)
+				.createCompilationUnit(sourcePackage, resource.javaFileName(), resource.actualStringContents());
 	}
 	
 	
@@ -107,10 +125,22 @@ public abstract class AbstractConversionTestCase  {
 		resource.assertExpectedContent(sharpenResourceCMD(resource));
 	}
 
+	/**The CORE PART of sharpen tests.<br>
+	 * 1. load configuration;<br>
+	 * 2. create converter instance ({@link SharpenConversionBatch}) 
+	 * 3. run converter
+	 * 4. return results
+	 * @param configuration
+	 * @param resource
+	 * @return
+	 * @throws IOException
+	 * @throws CoreException
+	 */
 	protected String sharpenResource(final Configuration configuration,
 			TestCaseResource resource) throws IOException, CoreException {
 
 			String cu = createCompilationUnit(resource);
+			@SuppressWarnings("unused")
 			File cufile = new File(cu);
 
 
@@ -137,8 +167,8 @@ public abstract class AbstractConversionTestCase  {
 				return "";
 			}
 
-			 byte[] encoded = Files.readAllBytes(filePath);
-			 return new String(encoded);
+			byte[] encoded = Files.readAllBytes(filePath);
+			return new String(encoded);
 	}
 	
 	protected String sharpenResourceCMD(TestCaseResource resource)  {
