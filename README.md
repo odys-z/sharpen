@@ -1,3 +1,10 @@
+# About the fork
+
+The original repo is achieved, and tests can't run without upgrade dependencies.
+
+This fork is intended to release a standby tool of jar (yes there are other forks
+released jar package).
+
 # Sharpen - Automated Java->C# coversion
 
 [imazen/sharpen](https://github.com/imazen/sharpen) [![master](https://img.shields.io/travis/imazen/sharpen/master.svg?label=imazen%20master)](https://travis-ci.org/imazen/sharpen/builds)[![imazen master - AppVeyor](https://ci.appveyor.com/api/projects/status/qxrbmyx70iuoev0x/branch/master?svg=true&passingText=imazen%20master%20-%20passing&failingText=imazen%20master%20-%20failed)](https://ci.appveyor.com/project/imazen/sharpen/branch/master) [![develop](https://img.shields.io/travis/imazen/sharpen/develop.svg?label=imazen%20develop)](https://travis-ci.org/imazen/sharpen/builds)
@@ -10,7 +17,7 @@
 
 Sharpen is a library and command-line tool for automating Java to C# code conversion. You can provide configuration classes to control a wide range of class and functionality mapping.
 
-Sharpen doesn’t provide a compatibility runtime (i.e, an implementation of all java functionality on top of .NET), but it does provide some utility classes to meet the most common needs. 
+Sharpen doesn’t provide a compatibility runtime (i.e, an implementation of all java functionality on top of .NET), but it does provide some utility classes to meet the most common needs.
 
 It’s likely that you will need to create a configuration class to customize and perfect your conversion, and you may need to apply patches to the result as well.
 
