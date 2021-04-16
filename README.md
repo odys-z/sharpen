@@ -7,6 +7,10 @@ The original repo is achieved, and tests can't run without upgrade dependencies.
 This fork is intended to release a standby tool of jar (yes there are other forks
 released jar package).
 
+- Add Eclipse project settings
+- Upgrade JDK to jdk15
+- Upgrade org.eclipse.jdt.core to 3.25.0
+
 # -------------------------------------------------------
 
 # Sharpen - Automated Java->C# coversion
