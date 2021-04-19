@@ -10,6 +10,8 @@ released jar package).
 - Add Eclipse project settings
 - Upgrade JDK to jdk15
 - Upgrade org.eclipse.jdt.core to 3.25.0
+- Fix "-cp" option problem - it's actually java's option, but used as sharpen command line arguments (see doc for usage)
+- Add maven project support - resolve the dependencies with maven
 
 # -------------------------------------------------------
 
