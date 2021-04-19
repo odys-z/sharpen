@@ -7,6 +7,14 @@ The original repo is achieved, and tests can't run without upgrade dependencies.
 This fork is intended to release a standby tool of jar (yes there are other forks
 released jar package).
 
+- Add Eclipse project settings
+- Upgrade JDK to jdk15
+- Upgrade org.eclipse.jdt.core to 3.25.0 (to fix internal error)
+- Fix "-cp" option problem - it's actually java's option, but used as sharpen command line arguments (see doc for usage)
+- Add maven project support - resolve the dependencies with maven
+- Add examples (TODO)
+- Add doc (TODO)
+
 # -------------------------------------------------------
 
 # Sharpen - Automated Java->C# coversion
