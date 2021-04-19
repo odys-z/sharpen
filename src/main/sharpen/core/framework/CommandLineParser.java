@@ -54,4 +54,10 @@ public abstract class CommandLineParser {
 	protected String consumeNext() {
 		return _args[++_current];
 	}
+	
+	protected String consumeNextJar() {
+		if (_args.length > _current + 1 && _args[_current + 1].endsWith(".jar"))
+			return _args[++_current];
+		else return null;
+	}
 }

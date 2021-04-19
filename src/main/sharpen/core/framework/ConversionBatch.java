@@ -1,7 +1,11 @@
 package sharpen.core.framework;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
@@ -94,7 +98,7 @@ public abstract class ConversionBatch {
 		// ody: supposing this is a bug
 //		if (null != classPathEntries || classPathEntries.isEmpty() ==false) {
 		if (null != classPathEntries && classPathEntries.isEmpty() ==false) {
-			_classPathEntries= classPathEntries.toArray(new String[classPathEntries.size()]);
+			_classPathEntries = classPathEntries.toArray(new String[classPathEntries.size()]);
 		}
 	}
 	

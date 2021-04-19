@@ -21,11 +21,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 package sharpen.core;
 
+import java.nio.file.Path;
 import java.util.*;
 
 public class SharpenCommandLine {
 	
-	public static final String opt_cp = "cp";
+	public static final String opt_cp = "clsp";
 	
 	public static SharpenCommandLine parse(String[] args) {
 		return new SharpenCommandLineParser(args).commandLine();
@@ -69,10 +70,13 @@ public class SharpenCommandLine {
 	public boolean indentWithSpaces;
 	public int indentSize = 4;
 	public int maxColumns = 80;
-	public String project;
-	public String projectPath;
+	protected Path project;
+	public String project() { return project.toString(); } 
+	protected Path projectPath;
+	public String projectPath() { return projectPath.toString(); }
 	final public List<String> classpath = new ArrayList<String>();
-	final public List<String> sourceFolders = new ArrayList<String>();
+	final protected ArrayList<Path> sourceFolders = new ArrayList<Path>();
+	public ArrayList<Path> sourceFolders() { return sourceFolders; }
 	final public List<Configuration.NameMapping> namespaceMappings = new ArrayList<Configuration.NameMapping>();
 	final public List<Configuration.NameMapping> typeMappings = new ArrayList<Configuration.NameMapping>();
 	final public Map<String, Configuration.MemberMapping> memberMappings = new HashMap<String, Configuration.MemberMapping>();
