@@ -1,15 +1,18 @@
 package sharpen.core.framework;
 
-import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-import org.eclipse.core.runtime.*;
-import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.dom.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.FileASTRequestor;
 
 public abstract class ConversionBatch {
 
@@ -22,8 +25,9 @@ public abstract class ConversionBatch {
 	private final ASTParser _parser;
 	private boolean _continueOnError;
 
+	@SuppressWarnings("deprecation")
 	public ConversionBatch() {
-		_parser = ASTParser.newParser(AST.JLS4);
+		_parser = ASTParser.newParser(AST.JLS8);
 		_parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		
 		Map<String, String> options = JavaCore.getOptions();
@@ -172,6 +176,13 @@ public abstract class ConversionBatch {
 		};
 		_parser.setEnvironment(_classPathEntries, _sourcePathEntries, null, true);
 		_parser.setResolveBindings(true);
+
+		// ody: solving problem that won't parse lambda expression.
+		// see https://stackoverflow.com/a/49063373/7362888
+		Map<String, String> options = JavaCore.getOptions();
+		JavaCore.setComplianceOptions(JavaCore.VERSION_1_8, options);
+		_parser.setCompilerOptions(options);
+
 		_parser.createASTs(_sourceFiles, null, new String[0], requestor, _progressMonitor);
 		return pairs;
 	}

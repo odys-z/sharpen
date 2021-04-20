@@ -40,12 +40,12 @@ public class StandaloneConverter extends SharpenConversion {
 	
 	private ASTParser _parser;
 	
+	@SuppressWarnings("deprecation")
 	public StandaloneConverter(Configuration configuration) {
 		super(configuration);
-		_parser = ASTParser.newParser(AST.JLS4);
+		_parser = ASTParser.newParser(AST.JLS8);
 		_parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		
-		@SuppressWarnings("unchecked")
 		Map<String, String> options = JavaCore.getOptions();
 		options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_7);
 		options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM,

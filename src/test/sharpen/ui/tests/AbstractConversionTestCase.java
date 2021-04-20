@@ -117,12 +117,31 @@ public abstract class AbstractConversionTestCase  {
 	
 	protected void runResourceTestCase(final Configuration configuration, String originalResourceName, String expectedResourceName) throws IOException, CoreException {
 		TestCaseResource resource = new TestCaseResource(originalResourceName, expectedResourceName);		
-		resource.assertExpectedContent(sharpenResource(configuration, resource));
+		// ody: newer version already support this
+		try {
+			resource.assertExpectedContent(sharpenResource(configuration, resource));
+		}
+		catch (Throwable x) {
+			if (System.getProperty("ff") != null) {
+				x.printStackTrace();
+				System.exit(-1);
+			}
+			else throw x;
+		}
 	}
 	
 	protected void runResourceTestCaseCMD(String originalResourceName, String expectedResourceName) throws IOException  {
 		TestCaseResource resource = new TestCaseResource(originalResourceName, expectedResourceName);		
-		resource.assertExpectedContent(sharpenResourceCMD(resource));
+		try {
+			resource.assertExpectedContent(sharpenResourceCMD(resource));
+		}
+		catch (Throwable x) {
+			if (System.getProperty("ff") != null) {
+				x.printStackTrace();
+				System.exit(-1);
+			}
+			else throw x;
+		}
 	}
 
 	/**The CORE PART of sharpen tests.<br>

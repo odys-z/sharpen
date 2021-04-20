@@ -9,6 +9,7 @@
 
   <name>sharpencore</name>
   <url>https://github.com/imazen/sharpen</url>
+
     <organization>
         <name>Imazen</name>
         <url>http://www.imazen.io</url>
@@ -77,7 +78,10 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-   <finalName>${project.artifactId}-${project.version}</finalName>
+    <finalName>${project.artifactId}-${project.version}</finalName>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<maven.compiler.source>1.8</maven.compiler.source>
+	<maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <dependencies>

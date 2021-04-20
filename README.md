@@ -8,9 +8,11 @@ This fork is intended to release a standby tool of jar (yes there are other fork
 released jar package).
 
 - Add Eclipse project settings
-- Upgrade JDK to jdk15
+- Upgrade API level to jdk1.8 (new features like lambda are ignored.
+	See test/resources/api8/StaticLambda.cs.txt)
 - Upgrade org.eclipse.jdt.core to 3.25.0 (to fix internal error)
-- Fix "-cp" option problem - it's actually java's option, but used as sharpen command line arguments (see doc for usage, source folder name: src)
+- Fix "-cp" option problem - it's actually java's option.
+	But used as sharpen command line arguments (see doc for usage, source folder name: src)
 - Add maven project support - resolve the dependencies with maven
 - Add examples (TODO)
 - Add doc (TODO)

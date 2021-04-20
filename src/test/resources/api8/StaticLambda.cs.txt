@@ -1,0 +1,27 @@
+namespace api8
+{
+	public class StaticLambda
+	{
+		public interface IJsonableFactory
+		{
+			void fromJson(string json);
+		}
+
+		internal static string v;
+
+		static StaticLambda()
+		{
+			bar(Sharpen.Runtime.getClassForType(typeof(api8.StaticLambda)), @"TODO: Lambda Expression Ignored
+(s) -> {
+  v=s;
+}
+"
+				);
+		}
+
+		public static void bar(java.lang.Class jsonable, api8.StaticLambda.IJsonableFactory
+			 factory)
+		{
+		}
+	}
+}

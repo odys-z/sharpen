@@ -27,6 +27,7 @@ import java.util.regex.*;
 
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.internal.core.LambdaMethod;
 
 import sharpen.core.Configuration.*;
 import sharpen.core.csharp.ast.*;
@@ -694,7 +695,7 @@ public class CSharpBuilder extends ASTVisitor {
 		return type;
 	}
 
-	private void mapTypeParameters(final List typeParameters, CSTypeParameterProvider type) {
+	private void mapTypeParameters(final List<?> typeParameters, CSTypeParameterProvider type) {
 		for (Object item : typeParameters) {
 			type.addTypeParameter(mapTypeParameter((TypeParameter) item));
 		}
@@ -879,7 +880,7 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	private void mapSuperInterfaces(AbstractTypeDeclaration node, CSTypeDeclaration type) {
-		List superInterfaceTypes;
+		List<?> superInterfaceTypes;
 		if (node instanceof TypeDeclaration) {
 			superInterfaceTypes = ((TypeDeclaration)node).superInterfaceTypes();
 		} else if (node instanceof EnumDeclaration) {
@@ -970,12 +971,20 @@ public class CSharpBuilder extends ASTVisitor {
 			return;
 
 		MethodDeclaration method = (MethodDeclaration) bodyDecl;
-		mapThrownExceptions(method.thrownExceptions(), member);
+		// ody: updated to jdk 1.8
+		// mapThrownExceptions(method.thrownExceptions(), member);
+		mapThrownExceptions(method.thrownExceptionTypes(), member);
 	}
 
-	private void mapThrownExceptions(List thrownExceptions, CSMember member) {
+	private void mapThrownExceptions(List<?> thrownExceptions, CSMember member) {
 		for (Object exception : thrownExceptions) {
-			mapThrownException((Name) exception, member);
+			// ody
+			// mapThrownException((Name) exception, member);
+			if (exception instanceof Name)
+				mapThrownException((Name) exception, member);
+			else if (exception instanceof SimpleType)
+				mapThrownException(((SimpleType)exception).getName(), member);
+			else System.err.println("Warn: ignoring throw type: " + exception);
 		}
 	}
 
@@ -1317,7 +1326,7 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	private CSDocNode mapTagWithCRef(CSMember member, String tagName, TagElement element) {
-		final List fragments = element.fragments();
+		final List<ASTNode> fragments = element.fragments();
 		if (fragments.isEmpty()) {
 			return invalidTagWithCRef(member, element, tagName, element);
 		}
@@ -1373,7 +1382,7 @@ public class CSharpBuilder extends ASTVisitor {
 
 	private CSDocNode mapTagParam(CSMember member, TagElement element) {
 		
-		List fragments = element.fragments();
+		List<ASTNode> fragments = element.fragments();
 		
 		if (!(fragments.get(0) instanceof SimpleName))
 			return new CSDocTagNode("?");
@@ -1415,7 +1424,7 @@ public class CSharpBuilder extends ASTVisitor {
 						: identifier;
 	}
 
-	private void collectFragments(CSMember member, CSDocTagNode node, List fragments, int index) {
+	private void collectFragments(CSMember member, CSDocTagNode node, List<ASTNode> fragments, int index) {
 		for (int i = index; i < fragments.size(); ++i) {
 			node.addFragment(mapTagElementFragment(member, (ASTNode) fragments.get(i), false));
 		}
@@ -1793,7 +1802,7 @@ public class CSharpBuilder extends ASTVisitor {
 			method.body().removeStatement (st);
 	}
 
-	private void mapMethodParts(MethodDeclaration node, CSMethodBase method) {
+	private CSMethodBase mapMethodParts(MethodDeclaration node, CSMethodBase method) {
 
 		_currentType.addMember(method);
 
@@ -1815,6 +1824,8 @@ public class CSharpBuilder extends ASTVisitor {
 			method.visibility(CSVisibility.Public);
 		else
 			mapVisibility(node, method);
+
+		return method;
 	}
 	
 	private String mappedMethodDeclarationName(MethodDeclaration node) {
@@ -2051,6 +2062,11 @@ public class CSharpBuilder extends ASTVisitor {
 		return (T) my(Bindings.class).findDeclaringNode(binding);		
 	}
 
+	/**Visit function blody block, ignoring disabled block by {@link SharpenAnnotations#SHARPEN_IF}. .
+	 * @param node
+	 * @param block
+	 * @param method
+	 */
 	private void visitBodyDeclarationBlock(BodyDeclaration node, Block block, CSMethodBase method) {
 		CSMethodBase saved = _currentMethod;
 		_currentMethod = method;
@@ -2068,6 +2084,10 @@ public class CSharpBuilder extends ASTVisitor {
 		csNode.addEnclosingIfDef(JavadocUtility.singleTextFragmentFrom(tag));
 	}
 
+	/**Process Disabled block marked by {@link SharpenAnnotations#SHARPEN_IF}.
+	 * @param node
+	 * @param csNode
+	 */
 	private void processDisableTags(BodyDeclaration node, CSNode csNode) {
 		TagElement tag = javadocTagFor(node, SharpenAnnotations.SHARPEN_IF);
 		if (null == tag)
@@ -2076,6 +2096,11 @@ public class CSharpBuilder extends ASTVisitor {
 		csNode.addEnclosingIfDef(JavadocUtility.singleTextFragmentFrom(tag));
 	}
 
+	/**Convert statements block.
+	 * @param node
+	 * @param block
+	 * @param targetBlock
+	 */
 	private void processBlock(BodyDeclaration node, Block block, final CSBlock targetBlock) {
 		if (containsJavadoc(node, SharpenAnnotations.SHARPEN_REMOVE_FIRST)) {
 			block.statements().remove(0);
@@ -2104,7 +2129,7 @@ public class CSharpBuilder extends ASTVisitor {
 		return false;
 	}
 
-	private void addChainedConstructorInvocation(CSExpression target, List arguments) {
+	private void addChainedConstructorInvocation(CSExpression target, List<Expression> arguments) {
 		CSConstructorInvocationExpression cie = new CSConstructorInvocationExpression(target);
 		mapArguments(cie, arguments);
 		((CSConstructor) _currentMethod).chainedConstructorInvocation(cie);
@@ -2517,12 +2542,12 @@ public class CSharpBuilder extends ASTVisitor {
 		return false;
 	}
 
+	//////////////////// because ArrayType changed it's way after JLS8 //////////////
 	/**
 	 * Unfolds java multi array creation shortcut "new String[2][3][2]" into
 	 * explicitly array creation "new string[][][] { new string[][] { new
 	 * string[2], new string[2], new string[2] }, new string[][] { new
 	 * string[2], new string[2], new string[2] } }"
-	 */
 	private CSArrayCreationExpression unfoldMultiArrayCreation(ArrayCreation node) {
 		return unfoldMultiArray((ArrayType) node.getType().getComponentType(), node.dimensions(), 0);
 	}
@@ -2546,6 +2571,43 @@ public class CSharpBuilder extends ASTVisitor {
 		}
 		return expression;
 	}
+	 */
+
+	private CSArrayCreationExpression unfoldMultiArrayCreation(ArrayCreation node) {
+		ArrayType atype = node.getType();
+		Type etype = atype.getElementType();
+		return unfoldMultiArrayCreation(node.dimensions(), atype.getDimensions(), etype, 0);
+	}
+	
+	private CSArrayCreationExpression unfoldMultiArrayCreation(List<ASTNode> dimensions, int arrDims, Type etype, int dimx) {
+		int length = resolveIntValue(dimensions.get(dimx));
+		if (dimx < lastIndex(dimensions) - 1) {
+			CSArrayCreationExpression exp = new CSArrayCreationExpression(
+					new CSArrayTypeReference(mappedTypeReference(etype), arrDims - dimx - 1));
+			exp.initializer(new CSArrayInitializerExpression());
+			for (int i = 0; i < length; ++i) {
+				exp.initializer().addExpression(
+				        unfoldMultiArrayCreation(dimensions, arrDims, etype, dimx + 1));
+			}
+			return exp;
+		}
+		else {
+			Expression innerLength = (Expression) dimensions.get(dimx + 1);
+			CSArrayCreationExpression exp = new CSArrayCreationExpression(
+					new CSArrayTypeReference(mappedTypeReference(etype), arrDims - dimx - 1));
+			exp.initializer(new CSArrayInitializerExpression());
+			CSTypeReferenceExpression innerType;
+			if (dimx + 2 < arrDims)
+				innerType = new CSArrayTypeReference(mappedTypeReference(etype), 1);
+			else
+				innerType = mappedTypeReference(etype);
+			for (int i = 0; i < length; ++i) {
+				exp.initializer().addExpression(
+						new CSArrayCreationExpression(innerType, mapExpression(innerLength)));
+			}
+			return exp;
+		}
+	}
 
 	private int lastIndex(List<?> dimensions) {
 		return dimensions.size() - 1;
@@ -2564,6 +2626,21 @@ public class CSharpBuilder extends ASTVisitor {
 		expression.initializer(mapArrayInitializer(node));
 		return expression;
 	}
+
+	/* ody:
+	private CSArrayCreationExpression mapSingleArrayCreation(ArrayCreation node) {
+		CSArrayCreationExpression expression;
+		if (node.getType().getDimensions() > 1)
+			expression = new CSArrayCreationExpression(mappedTypeReference(componentType(node.getType())), 1);
+		else
+			expression = new CSArrayCreationExpression(mappedTypeReference(componentType(node.getType())));
+		if (!node.dimensions().isEmpty()) {
+			expression.length(mapExpression((Expression) node.dimensions().get(0)));
+		}
+		expression.initializer(mapArrayInitializer(node));
+		return expression;
+	}
+	*/
 
 	private CSArrayInitializerExpression mapArrayInitializer(ArrayCreation node) {
 		return (CSArrayInitializerExpression) mapExpression(node.getInitializer());
@@ -2597,7 +2674,12 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	public ITypeBinding componentType(ArrayType type) {
-		return type.getComponentType().resolveBinding();
+//		ody: jdk 1.8 .()
+//		return type
+//				.getComponentType()
+//				.resolveBinding();
+		return type.getDimensions() > 1 ?
+				type.resolveBinding() : type.getElementType().resolveBinding();
 	}
 
 	@Override
@@ -2681,7 +2763,10 @@ public class CSharpBuilder extends ASTVisitor {
 						openCaseBlock.addStatement(new CSGotoStatement (Integer.MIN_VALUE, "default"));
 				} else {
 					ITypeBinding stype = pushExpectedType (switchType);
+
 					CSExpression caseExpression = mapExpression(sc.getExpression());
+								// JLS14:
+								// mapExpression((Expression) sc.expressions().get(0));
 					current.addExpression(caseExpression);
 					popExpectedType(stype);
 					if (openCaseBlock != null)
@@ -3119,7 +3204,7 @@ public class CSharpBuilder extends ASTVisitor {
 		pushExpression(new CSMacroExpression(code));
     }
 
-	private List<CSExpression> mapExpressions(List expressions) {
+	private List<CSExpression> mapExpressions(List<Expression> expressions) {
 		final ArrayList<CSExpression> result = new ArrayList<CSExpression>(expressions.size());
 		for (Object expression : expressions) {
 			result.add(mapExpression((Expression) expression));
@@ -3132,7 +3217,7 @@ public class CSharpBuilder extends ASTVisitor {
     }
 
 	private void processUnwrapInvocation(MethodInvocation node) {
-	    final List arguments = node.arguments();
+	    final List<Expression> arguments = node.arguments();
 	    if (arguments.size() != 1) {
 	    	unsupportedConstruct(node, SharpenAnnotations.SHARPEN_UNWRAP + " only works against single argument methods.");
 	    }
@@ -3202,7 +3287,7 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 	
 	private void mapMethodInvocationArguments(CSMethodInvocationExpression mie, MethodInvocation node) {
-		final List arguments = node.arguments();
+		final List<Expression> arguments = node.arguments();
 		final IMethodBinding actualMethod = node.resolveMethodBinding();
 		final ITypeBinding[] actualTypes = actualMethod.getParameterTypes();
 		final IMethodBinding originalMethod = actualMethod.getMethodDeclaration();
@@ -3246,7 +3331,7 @@ public class CSharpBuilder extends ASTVisitor {
 			
 			if (method.equals("assertSame")) {
 				boolean useEquals = false;
-				final List arguments = node.arguments();
+				final List<Expression> arguments = node.arguments();
 				for (int i = 0; i < arguments.size(); ++i) {
 					final Expression arg = (Expression) arguments.get(i);
 					ITypeBinding b = arg.resolveTypeBinding();
@@ -3449,7 +3534,7 @@ public class CSharpBuilder extends ASTVisitor {
 		// target(arg0 ... argN) => target[arg0... argN-1] = argN;
 		
 		final CSIndexedExpression indexer = new CSIndexedExpression(mapIndexerTarget(node));
-		final List arguments = node.arguments();
+		final List<Expression> arguments = node.arguments();
 		final Expression lastArgument = (Expression)arguments.get(arguments.size() - 1);
 		for (int i=0; i<arguments.size()-1; ++i) {
 			indexer.addIndex(mapExpression((Expression) arguments.get(i)));
@@ -3494,7 +3579,7 @@ public class CSharpBuilder extends ASTVisitor {
 		return -1 != name.indexOf('.');
 	}
 
-	protected void mapArguments(CSMethodInvocationExpression mie, List arguments) {
+	protected void mapArguments(CSMethodInvocationExpression mie, List<Expression> arguments) {
 		for (Object arg : arguments) {
 			addArgument(mie, (Expression) arg, null);
 		}
@@ -3707,7 +3792,8 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	private void unsupportedConstruct(ASTNode node, Exception cause) {
-		Class clz = this.getClass();
+		Class<? extends CSharpBuilder> clz = this.getClass();
+		@SuppressWarnings("unused")
 		String name = clz.getName();
 
 		unsupportedConstruct(node, "failed to map: '" + node + "'", cause);
@@ -3751,7 +3837,7 @@ public class CSharpBuilder extends ASTVisitor {
 		return createVariableDeclaration(declaration.resolveBinding(), null);
 	}
 
-	protected void visit(List nodes) {
+	protected void visit(List<?> nodes) {
 		for (Object node : nodes) {
 			((ASTNode) node).accept(this);
 		}
@@ -4199,6 +4285,16 @@ public class CSharpBuilder extends ASTVisitor {
 		return super.visit(node);
 	}
 	
+	////////////////// ignoring lambda /////////////////////
+	@Override
+	public boolean visit(LambdaExpression node) {
+		_currentExpression = new CSStringLiteralExpression("@\"TODO: Lambda Expression Ignored\n"
+				+ node.toString() + "\"");
+		return false;
+	}
+	
+	////////////////// ignoring lambda /////////////////////
+
 	@Override
 	public void endVisit(Block node) {
 		if (isBlockInsideBlock (node)) {
