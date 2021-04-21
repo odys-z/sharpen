@@ -990,6 +990,8 @@ public class CSharpPrinter extends CSVisitor {
 		case AbstractOverride: return "abstract override ";
 		case Sealed: return "sealed override ";
 		case Override: return "override ";
+		default:
+			break;
 		}
 		return "";
 	}
@@ -1033,6 +1035,8 @@ public class CSharpPrinter extends CSVisitor {
 		case Abstract: return "abstract ";
 		case Sealed: return "sealed ";
 		case Static: return "static ";
+		default:
+			break;
 		}
 		return "";
 	}

@@ -72,7 +72,7 @@ public class SharpenApplication {
     		String filename = "sharpen.properties";
     		input = SharpenApplication.class.getClassLoader().getResourceAsStream(filename);
     		if(input==null){
-    	            System.out.println("Unable to find " + filename);
+    	        System.out.println("Unable to find " + filename);
     		    return;
     		}
     		prop.load(input);
@@ -257,8 +257,12 @@ public class SharpenApplication {
 	JavaProjectCmd setUpJavaProject() throws CoreException {
 		ods("project: " + _args.project);
 		JavaProjectCmd jpCmd = new JavaProjectCmd();
-		jpCmd.setProjectName(_args.project);
-		jpCmd.setProjectPath(_args.projectPath);
+		// ody
+//		jpCmd.setProjectName(_args.project.lastSegment());
+//		jpCmd.setProjectPath(_args.projectPath);
+//		jpCmd.setSourceFolder(_args.sourceFolders);
+		jpCmd.setProjectName(_args.project());
+		jpCmd.setProjectPath(_args.projectPath.toString());
 		jpCmd.setSourceFolder(_args.sourceFolders);
 		jpCmd.setclassPath(_args.classpath); // ody: should also load $JAVA_HOME or environment variables?
 		return jpCmd;

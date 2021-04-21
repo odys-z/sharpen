@@ -1,0 +1,10 @@
+namespace Interface2
+{
+	public class Caller
+	{
+		internal virtual void CallIt()
+		{
+			new Interface2.Provider().Provide().Method1();
+		}
+	}
+}

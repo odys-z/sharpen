@@ -22,18 +22,212 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 package sharpen.core;
 
 
-import java.util.*;
-import java.util.regex.*;
+import static sharpen.core.framework.Environments.my;
+import static sharpen.core.framework.StaticImports.isStaticImport;
+import static sharpen.core.framework.StaticImports.staticImportMethodBinding;
 
-import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.dom.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import sharpen.core.Configuration.*;
-import sharpen.core.csharp.ast.*;
-import sharpen.core.framework.*;
-import static sharpen.core.framework.StaticImports.*;
+import org.eclipse.jdt.core.IBuffer;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.Annotation;
+import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
+import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
+import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
+import org.eclipse.jdt.core.dom.ArrayAccess;
+import org.eclipse.jdt.core.dom.ArrayCreation;
+import org.eclipse.jdt.core.dom.ArrayInitializer;
+import org.eclipse.jdt.core.dom.ArrayType;
+import org.eclipse.jdt.core.dom.AssertStatement;
+import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.BlockComment;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.BooleanLiteral;
+import org.eclipse.jdt.core.dom.BreakStatement;
+import org.eclipse.jdt.core.dom.CastExpression;
+import org.eclipse.jdt.core.dom.CatchClause;
+import org.eclipse.jdt.core.dom.CharacterLiteral;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ConditionalExpression;
+import org.eclipse.jdt.core.dom.ConstructorInvocation;
+import org.eclipse.jdt.core.dom.ContinueStatement;
+import org.eclipse.jdt.core.dom.DoStatement;
+import org.eclipse.jdt.core.dom.EnhancedForStatement;
+import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
+import org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
+import org.eclipse.jdt.core.dom.FieldAccess;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.ForStatement;
+import org.eclipse.jdt.core.dom.IAnnotationBinding;
+import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
+import org.eclipse.jdt.core.dom.InfixExpression;
+import org.eclipse.jdt.core.dom.Initializer;
+import org.eclipse.jdt.core.dom.InstanceofExpression;
+import org.eclipse.jdt.core.dom.Javadoc;
+import org.eclipse.jdt.core.dom.LabeledStatement;
+import org.eclipse.jdt.core.dom.LambdaExpression;
+import org.eclipse.jdt.core.dom.LineComment;
+import org.eclipse.jdt.core.dom.MarkerAnnotation;
+import org.eclipse.jdt.core.dom.MemberRef;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.MethodRef;
+import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.eclipse.jdt.core.dom.NullLiteral;
+import org.eclipse.jdt.core.dom.NumberLiteral;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
+import org.eclipse.jdt.core.dom.ParenthesizedExpression;
+import org.eclipse.jdt.core.dom.PostfixExpression;
+import org.eclipse.jdt.core.dom.PrefixExpression;
+import org.eclipse.jdt.core.dom.QualifiedName;
+import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jdt.core.dom.StringLiteral;
+import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
+import org.eclipse.jdt.core.dom.SuperFieldAccess;
+import org.eclipse.jdt.core.dom.SuperMethodInvocation;
+import org.eclipse.jdt.core.dom.SwitchCase;
+import org.eclipse.jdt.core.dom.SwitchStatement;
+import org.eclipse.jdt.core.dom.SynchronizedStatement;
+import org.eclipse.jdt.core.dom.TagElement;
+import org.eclipse.jdt.core.dom.TextElement;
+import org.eclipse.jdt.core.dom.ThisExpression;
+import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.TryStatement;
+import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.TypeLiteral;
+import org.eclipse.jdt.core.dom.TypeParameter;
+import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.eclipse.jdt.core.dom.WhileStatement;
+import org.eclipse.jdt.core.dom.WildcardType;
 
-import static sharpen.core.framework.Environments.*;
+import sharpen.core.Configuration.MemberMapping;
+import sharpen.core.csharp.ast.CSArrayCreationExpression;
+import sharpen.core.csharp.ast.CSArrayInitializerExpression;
+import sharpen.core.csharp.ast.CSArrayTypeReference;
+import sharpen.core.csharp.ast.CSAttribute;
+import sharpen.core.csharp.ast.CSBaseExpression;
+import sharpen.core.csharp.ast.CSBlock;
+import sharpen.core.csharp.ast.CSBlockComment;
+import sharpen.core.csharp.ast.CSBoolLiteralExpression;
+import sharpen.core.csharp.ast.CSBreakStatement;
+import sharpen.core.csharp.ast.CSCaseClause;
+import sharpen.core.csharp.ast.CSCastExpression;
+import sharpen.core.csharp.ast.CSCatchClause;
+import sharpen.core.csharp.ast.CSCharLiteralExpression;
+import sharpen.core.csharp.ast.CSClass;
+import sharpen.core.csharp.ast.CSClassModifier;
+import sharpen.core.csharp.ast.CSCompilationUnit;
+import sharpen.core.csharp.ast.CSConditionalExpression;
+import sharpen.core.csharp.ast.CSConstructor;
+import sharpen.core.csharp.ast.CSConstructorInvocationExpression;
+import sharpen.core.csharp.ast.CSConstructorModifier;
+import sharpen.core.csharp.ast.CSContinueStatement;
+import sharpen.core.csharp.ast.CSDeclarationExpression;
+import sharpen.core.csharp.ast.CSDeclarationStatement;
+import sharpen.core.csharp.ast.CSDestructor;
+import sharpen.core.csharp.ast.CSDoStatement;
+import sharpen.core.csharp.ast.CSDocNode;
+import sharpen.core.csharp.ast.CSDocTagNode;
+import sharpen.core.csharp.ast.CSDocTextNode;
+import sharpen.core.csharp.ast.CSDocTextOverlay;
+import sharpen.core.csharp.ast.CSEnum;
+import sharpen.core.csharp.ast.CSEvent;
+import sharpen.core.csharp.ast.CSExpression;
+import sharpen.core.csharp.ast.CSExpressionStatement;
+import sharpen.core.csharp.ast.CSExpressionVisitor;
+import sharpen.core.csharp.ast.CSField;
+import sharpen.core.csharp.ast.CSFieldModifier;
+import sharpen.core.csharp.ast.CSForEachStatement;
+import sharpen.core.csharp.ast.CSForStatement;
+import sharpen.core.csharp.ast.CSGotoStatement;
+import sharpen.core.csharp.ast.CSIfStatement;
+import sharpen.core.csharp.ast.CSIndexedExpression;
+import sharpen.core.csharp.ast.CSInfixExpression;
+import sharpen.core.csharp.ast.CSInterface;
+import sharpen.core.csharp.ast.CSLabelStatement;
+import sharpen.core.csharp.ast.CSLineComment;
+import sharpen.core.csharp.ast.CSLockStatement;
+import sharpen.core.csharp.ast.CSMacro;
+import sharpen.core.csharp.ast.CSMacroExpression;
+import sharpen.core.csharp.ast.CSMacroTypeReference;
+import sharpen.core.csharp.ast.CSMember;
+import sharpen.core.csharp.ast.CSMemberReferenceExpression;
+import sharpen.core.csharp.ast.CSMetaMember;
+import sharpen.core.csharp.ast.CSMethod;
+import sharpen.core.csharp.ast.CSMethodBase;
+import sharpen.core.csharp.ast.CSMethodInvocationExpression;
+import sharpen.core.csharp.ast.CSMethodModifier;
+import sharpen.core.csharp.ast.CSNode;
+import sharpen.core.csharp.ast.CSNullLiteralExpression;
+import sharpen.core.csharp.ast.CSNumberLiteralExpression;
+import sharpen.core.csharp.ast.CSParameterized;
+import sharpen.core.csharp.ast.CSParenthesizedExpression;
+import sharpen.core.csharp.ast.CSPostfixExpression;
+import sharpen.core.csharp.ast.CSPrefixExpression;
+import sharpen.core.csharp.ast.CSProperty;
+import sharpen.core.csharp.ast.CSReferenceExpression;
+import sharpen.core.csharp.ast.CSRemovedExpression;
+import sharpen.core.csharp.ast.CSReturnStatement;
+import sharpen.core.csharp.ast.CSStatement;
+import sharpen.core.csharp.ast.CSStringLiteralExpression;
+import sharpen.core.csharp.ast.CSStruct;
+import sharpen.core.csharp.ast.CSSwitchStatement;
+import sharpen.core.csharp.ast.CSThisExpression;
+import sharpen.core.csharp.ast.CSThrowStatement;
+import sharpen.core.csharp.ast.CSTryStatement;
+import sharpen.core.csharp.ast.CSType;
+import sharpen.core.csharp.ast.CSTypeDeclaration;
+import sharpen.core.csharp.ast.CSTypeParameter;
+import sharpen.core.csharp.ast.CSTypeParameterProvider;
+import sharpen.core.csharp.ast.CSTypeReference;
+import sharpen.core.csharp.ast.CSTypeReferenceExpression;
+import sharpen.core.csharp.ast.CSTypeofExpression;
+import sharpen.core.csharp.ast.CSUncheckedExpression;
+import sharpen.core.csharp.ast.CSUsing;
+import sharpen.core.csharp.ast.CSUsingStatement;
+import sharpen.core.csharp.ast.CSVariableDeclaration;
+import sharpen.core.csharp.ast.CSVisibility;
+import sharpen.core.csharp.ast.CSWhileStatement;
+import sharpen.core.csharp.ast.CSharpCode;
+import sharpen.core.framework.ASTResolver;
+import sharpen.core.framework.ASTUtility;
+import sharpen.core.framework.BindingUtils;
+import sharpen.core.framework.ByRef;
+import sharpen.core.framework.DynamicVariable;
+import sharpen.core.framework.Function;
+import sharpen.core.framework.JavadocUtility;
+import sharpen.core.framework.Types;
 
 public class CSharpBuilder extends ASTVisitor {
 
@@ -694,7 +888,7 @@ public class CSharpBuilder extends ASTVisitor {
 		return type;
 	}
 
-	private void mapTypeParameters(final List typeParameters, CSTypeParameterProvider type) {
+	private void mapTypeParameters(final List<?> typeParameters, CSTypeParameterProvider type) {
 		for (Object item : typeParameters) {
 			type.addTypeParameter(mapTypeParameter((TypeParameter) item));
 		}
@@ -879,7 +1073,7 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	private void mapSuperInterfaces(AbstractTypeDeclaration node, CSTypeDeclaration type) {
-		List superInterfaceTypes;
+		List<?> superInterfaceTypes;
 		if (node instanceof TypeDeclaration) {
 			superInterfaceTypes = ((TypeDeclaration)node).superInterfaceTypes();
 		} else if (node instanceof EnumDeclaration) {
@@ -970,12 +1164,20 @@ public class CSharpBuilder extends ASTVisitor {
 			return;
 
 		MethodDeclaration method = (MethodDeclaration) bodyDecl;
-		mapThrownExceptions(method.thrownExceptions(), member);
+		// ody: updated to jdk 1.8
+		// mapThrownExceptions(method.thrownExceptions(), member);
+		mapThrownExceptions(method.thrownExceptionTypes(), member);
 	}
 
-	private void mapThrownExceptions(List thrownExceptions, CSMember member) {
+	private void mapThrownExceptions(List<?> thrownExceptions, CSMember member) {
 		for (Object exception : thrownExceptions) {
-			mapThrownException((Name) exception, member);
+			// ody
+			// mapThrownException((Name) exception, member);
+			if (exception instanceof Name)
+				mapThrownException((Name) exception, member);
+			else if (exception instanceof SimpleType)
+				mapThrownException(((SimpleType)exception).getName(), member);
+			else System.err.println("Warn: ignoring throw type: " + exception);
 		}
 	}
 
@@ -1317,7 +1519,7 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	private CSDocNode mapTagWithCRef(CSMember member, String tagName, TagElement element) {
-		final List fragments = element.fragments();
+		final List<ASTNode> fragments = element.fragments();
 		if (fragments.isEmpty()) {
 			return invalidTagWithCRef(member, element, tagName, element);
 		}
@@ -1373,7 +1575,7 @@ public class CSharpBuilder extends ASTVisitor {
 
 	private CSDocNode mapTagParam(CSMember member, TagElement element) {
 		
-		List fragments = element.fragments();
+		List<ASTNode> fragments = element.fragments();
 		
 		if (!(fragments.get(0) instanceof SimpleName))
 			return new CSDocTagNode("?");
@@ -1415,7 +1617,7 @@ public class CSharpBuilder extends ASTVisitor {
 						: identifier;
 	}
 
-	private void collectFragments(CSMember member, CSDocTagNode node, List fragments, int index) {
+	private void collectFragments(CSMember member, CSDocTagNode node, List<ASTNode> fragments, int index) {
 		for (int i = index; i < fragments.size(); ++i) {
 			node.addFragment(mapTagElementFragment(member, (ASTNode) fragments.get(i), false));
 		}
@@ -1793,7 +1995,7 @@ public class CSharpBuilder extends ASTVisitor {
 			method.body().removeStatement (st);
 	}
 
-	private void mapMethodParts(MethodDeclaration node, CSMethodBase method) {
+	private CSMethodBase mapMethodParts(MethodDeclaration node, CSMethodBase method) {
 
 		_currentType.addMember(method);
 
@@ -1815,6 +2017,8 @@ public class CSharpBuilder extends ASTVisitor {
 			method.visibility(CSVisibility.Public);
 		else
 			mapVisibility(node, method);
+
+		return method;
 	}
 	
 	private String mappedMethodDeclarationName(MethodDeclaration node) {
@@ -2051,6 +2255,11 @@ public class CSharpBuilder extends ASTVisitor {
 		return (T) my(Bindings.class).findDeclaringNode(binding);		
 	}
 
+	/**Visit function blody block, ignoring disabled block by {@link SharpenAnnotations#SHARPEN_IF}. .
+	 * @param node
+	 * @param block
+	 * @param method
+	 */
 	private void visitBodyDeclarationBlock(BodyDeclaration node, Block block, CSMethodBase method) {
 		CSMethodBase saved = _currentMethod;
 		_currentMethod = method;
@@ -2068,6 +2277,10 @@ public class CSharpBuilder extends ASTVisitor {
 		csNode.addEnclosingIfDef(JavadocUtility.singleTextFragmentFrom(tag));
 	}
 
+	/**Process Disabled block marked by {@link SharpenAnnotations#SHARPEN_IF}.
+	 * @param node
+	 * @param csNode
+	 */
 	private void processDisableTags(BodyDeclaration node, CSNode csNode) {
 		TagElement tag = javadocTagFor(node, SharpenAnnotations.SHARPEN_IF);
 		if (null == tag)
@@ -2076,6 +2289,11 @@ public class CSharpBuilder extends ASTVisitor {
 		csNode.addEnclosingIfDef(JavadocUtility.singleTextFragmentFrom(tag));
 	}
 
+	/**Convert statements block.
+	 * @param node
+	 * @param block
+	 * @param targetBlock
+	 */
 	private void processBlock(BodyDeclaration node, Block block, final CSBlock targetBlock) {
 		if (containsJavadoc(node, SharpenAnnotations.SHARPEN_REMOVE_FIRST)) {
 			block.statements().remove(0);
@@ -2104,7 +2322,7 @@ public class CSharpBuilder extends ASTVisitor {
 		return false;
 	}
 
-	private void addChainedConstructorInvocation(CSExpression target, List arguments) {
+	private void addChainedConstructorInvocation(CSExpression target, List<Expression> arguments) {
 		CSConstructorInvocationExpression cie = new CSConstructorInvocationExpression(target);
 		mapArguments(cie, arguments);
 		((CSConstructor) _currentMethod).chainedConstructorInvocation(cie);
@@ -2517,12 +2735,12 @@ public class CSharpBuilder extends ASTVisitor {
 		return false;
 	}
 
+	//////////////////// because ArrayType changed it's way after JLS8 //////////////
 	/**
 	 * Unfolds java multi array creation shortcut "new String[2][3][2]" into
 	 * explicitly array creation "new string[][][] { new string[][] { new
 	 * string[2], new string[2], new string[2] }, new string[][] { new
 	 * string[2], new string[2], new string[2] } }"
-	 */
 	private CSArrayCreationExpression unfoldMultiArrayCreation(ArrayCreation node) {
 		return unfoldMultiArray((ArrayType) node.getType().getComponentType(), node.dimensions(), 0);
 	}
@@ -2546,6 +2764,43 @@ public class CSharpBuilder extends ASTVisitor {
 		}
 		return expression;
 	}
+	 */
+
+	private CSArrayCreationExpression unfoldMultiArrayCreation(ArrayCreation node) {
+		ArrayType atype = node.getType();
+		Type etype = atype.getElementType();
+		return unfoldMultiArrayCreation(node.dimensions(), atype.getDimensions(), etype, 0);
+	}
+	
+	private CSArrayCreationExpression unfoldMultiArrayCreation(List<ASTNode> dimensions, int arrDims, Type etype, int dimx) {
+		int length = resolveIntValue(dimensions.get(dimx));
+		if (dimx < lastIndex(dimensions) - 1) {
+			CSArrayCreationExpression exp = new CSArrayCreationExpression(
+					new CSArrayTypeReference(mappedTypeReference(etype), arrDims - dimx - 1));
+			exp.initializer(new CSArrayInitializerExpression());
+			for (int i = 0; i < length; ++i) {
+				exp.initializer().addExpression(
+				        unfoldMultiArrayCreation(dimensions, arrDims, etype, dimx + 1));
+			}
+			return exp;
+		}
+		else {
+			Expression innerLength = (Expression) dimensions.get(dimx + 1);
+			CSArrayCreationExpression exp = new CSArrayCreationExpression(
+					new CSArrayTypeReference(mappedTypeReference(etype), arrDims - dimx - 1));
+			exp.initializer(new CSArrayInitializerExpression());
+			CSTypeReferenceExpression innerType;
+			if (dimx + 2 < arrDims)
+				innerType = new CSArrayTypeReference(mappedTypeReference(etype), 1);
+			else
+				innerType = mappedTypeReference(etype);
+			for (int i = 0; i < length; ++i) {
+				exp.initializer().addExpression(
+						new CSArrayCreationExpression(innerType, mapExpression(innerLength)));
+			}
+			return exp;
+		}
+	}
 
 	private int lastIndex(List<?> dimensions) {
 		return dimensions.size() - 1;
@@ -2555,9 +2810,30 @@ public class CSharpBuilder extends ASTVisitor {
 		return ((Number) ((Expression) expression).resolveConstantExpressionValue()).intValue();
 	}
 
+	//////////////////// because ArrayType changed it's way after JLS8 //////////////
+	/* ody:
 	private CSArrayCreationExpression mapSingleArrayCreation(ArrayCreation node) {
-		CSArrayCreationExpression expression = new CSArrayCreationExpression(mappedTypeReference(componentType(node
-		        .getType())));
+		CSArrayCreationExpression expression;
+		if (node.getType().getDimensions() > 1)
+			expression = new CSArrayCreationExpression(mappedTypeReference(componentType(node.getType())), 1);
+		else
+			expression = new CSArrayCreationExpression(mappedTypeReference(componentType(node.getType())));
+		if (!node.dimensions().isEmpty()) {
+			expression.length(mapExpression((Expression) node.dimensions().get(0)));
+		}
+		expression.initializer(mapArrayInitializer(node));
+		return expression;
+	}
+	*/
+
+	/**Handling initializer with only 1 dimension size.
+	 * @param node
+	 * @return
+	 */
+	private CSArrayCreationExpression mapSingleArrayCreation(ArrayCreation node) {
+		CSArrayCreationExpression expression = new CSArrayCreationExpression(
+					mappedArrayTypeReference(node.getType(), node.getType().getDimensions() - 1));
+
 		if (!node.dimensions().isEmpty()) {
 			expression.length(mapExpression((Expression) node.dimensions().get(0)));
 		}
@@ -2597,7 +2873,12 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	public ITypeBinding componentType(ArrayType type) {
-		return type.getComponentType().resolveBinding();
+		// ody: jdk 1.8 ArrayType#getComponent() is deprecated
+		// return type
+		// 		.getComponentType()
+		// 		.resolveBinding();
+		return type.getDimensions() > 1 ?
+				type.resolveBinding() : type.getElementType().resolveBinding();
 	}
 
 	@Override
@@ -2681,7 +2962,11 @@ public class CSharpBuilder extends ASTVisitor {
 						openCaseBlock.addStatement(new CSGotoStatement (Integer.MIN_VALUE, "default"));
 				} else {
 					ITypeBinding stype = pushExpectedType (switchType);
+
+					@SuppressWarnings("deprecation")
 					CSExpression caseExpression = mapExpression(sc.getExpression());
+								// for JLS14:
+								// mapExpression((Expression) sc.expressions().get(0));
 					current.addExpression(caseExpression);
 					popExpectedType(stype);
 					if (openCaseBlock != null)
@@ -3119,7 +3404,7 @@ public class CSharpBuilder extends ASTVisitor {
 		pushExpression(new CSMacroExpression(code));
     }
 
-	private List<CSExpression> mapExpressions(List expressions) {
+	private List<CSExpression> mapExpressions(List<Expression> expressions) {
 		final ArrayList<CSExpression> result = new ArrayList<CSExpression>(expressions.size());
 		for (Object expression : expressions) {
 			result.add(mapExpression((Expression) expression));
@@ -3132,7 +3417,7 @@ public class CSharpBuilder extends ASTVisitor {
     }
 
 	private void processUnwrapInvocation(MethodInvocation node) {
-	    final List arguments = node.arguments();
+	    final List<Expression> arguments = node.arguments();
 	    if (arguments.size() != 1) {
 	    	unsupportedConstruct(node, SharpenAnnotations.SHARPEN_UNWRAP + " only works against single argument methods.");
 	    }
@@ -3202,7 +3487,7 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 	
 	private void mapMethodInvocationArguments(CSMethodInvocationExpression mie, MethodInvocation node) {
-		final List arguments = node.arguments();
+		final List<Expression> arguments = node.arguments();
 		final IMethodBinding actualMethod = node.resolveMethodBinding();
 		final ITypeBinding[] actualTypes = actualMethod.getParameterTypes();
 		final IMethodBinding originalMethod = actualMethod.getMethodDeclaration();
@@ -3246,7 +3531,7 @@ public class CSharpBuilder extends ASTVisitor {
 			
 			if (method.equals("assertSame")) {
 				boolean useEquals = false;
-				final List arguments = node.arguments();
+				final List<Expression> arguments = node.arguments();
 				for (int i = 0; i < arguments.size(); ++i) {
 					final Expression arg = (Expression) arguments.get(i);
 					ITypeBinding b = arg.resolveTypeBinding();
@@ -3449,7 +3734,7 @@ public class CSharpBuilder extends ASTVisitor {
 		// target(arg0 ... argN) => target[arg0... argN-1] = argN;
 		
 		final CSIndexedExpression indexer = new CSIndexedExpression(mapIndexerTarget(node));
-		final List arguments = node.arguments();
+		final List<Expression> arguments = node.arguments();
 		final Expression lastArgument = (Expression)arguments.get(arguments.size() - 1);
 		for (int i=0; i<arguments.size()-1; ++i) {
 			indexer.addIndex(mapExpression((Expression) arguments.get(i)));
@@ -3494,7 +3779,7 @@ public class CSharpBuilder extends ASTVisitor {
 		return -1 != name.indexOf('.');
 	}
 
-	protected void mapArguments(CSMethodInvocationExpression mie, List arguments) {
+	protected void mapArguments(CSMethodInvocationExpression mie, List<Expression> arguments) {
 		for (Object arg : arguments) {
 			addArgument(mie, (Expression) arg, null);
 		}
@@ -3707,7 +3992,8 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	private void unsupportedConstruct(ASTNode node, Exception cause) {
-		Class clz = this.getClass();
+		Class<? extends CSharpBuilder> clz = this.getClass();
+		@SuppressWarnings("unused")
 		String name = clz.getName();
 
 		unsupportedConstruct(node, "failed to map: '" + node + "'", cause);
@@ -3751,7 +4037,7 @@ public class CSharpBuilder extends ASTVisitor {
 		return createVariableDeclaration(declaration.resolveBinding(), null);
 	}
 
-	protected void visit(List nodes) {
+	protected void visit(List<?> nodes) {
 		for (Object node : nodes) {
 			((ASTNode) node).accept(this);
 		}
@@ -4082,7 +4368,19 @@ public class CSharpBuilder extends ASTVisitor {
 
 	private CSTypeReferenceExpression mappedArrayTypeReference(ITypeBinding type) {
 		return new CSArrayTypeReference(mappedTypeReference(type.getElementType()), type.getDimensions());
+	}
 
+	/**create cs array type reference.
+	 * array dimesion can be specified as the it's need when creating array,
+	 * the dimension size won't match the declaration's dimension.
+	 * 
+	 * <p>Note by ody: this modification by passed the general function interface: {@link #mappedTypeReference(ITypeBinding)}.</p>
+	 * @param type
+	 * @param declaredDimension
+	 * @return
+	 */
+	private CSTypeReferenceExpression mappedArrayTypeReference(ArrayType type, int declaredim) {
+		return new CSArrayTypeReference(mappedTypeReference(type.getElementType()), declaredim);
 	}
 
 	protected final String mappedTypeName(ITypeBinding type) {
@@ -4199,6 +4497,16 @@ public class CSharpBuilder extends ASTVisitor {
 		return super.visit(node);
 	}
 	
+	////////////////// ignoring lambda /////////////////////
+	@Override
+	public boolean visit(LambdaExpression node) {
+		_currentExpression = new CSStringLiteralExpression("@\"TODO: Lambda Expression Ignored\n"
+				+ node.toString() + "\"");
+		return false;
+	}
+	
+	////////////////// ignoring lambda /////////////////////
+
 	@Override
 	public void endVisit(Block node) {
 		if (isBlockInsideBlock (node)) {

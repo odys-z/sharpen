@@ -1,0 +1,16 @@
+package api8;
+
+public class StaticLambda {
+	public interface JsonableFactory {
+		void fromJson(String json);
+	}
+	
+	static String v;
+
+	static {
+		bar(StaticLambda.class, (s) -> { v = s; });
+	}
+
+	public static void bar(Class<?> jsonable, JsonableFactory factory) {
+	}
+}

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,9 +45,16 @@ public class JavaProjectCmd {
 		return sourceFolder;
 	}
 
-	public void setSourceFolder(Iterable<String> sourceFolders) {
-		for (String srcFolder : sourceFolders) {
-			sourceFolder =projectPath + "/" + srcFolder;
+	// ody
+//	public void setSourceFolder(Iterable<String> sourceFolders) {
+//		for (String srcFolder : sourceFolders) {
+//			sourceFolder =projectPath + "/" + srcFolder;
+//		}
+//	}
+	// should be deprecated
+	public void setSourceFolder(Iterable<Path> sourceFolders) {
+		for (Path srcFolder : sourceFolders) {
+			sourceFolder = projectPath + "/" + srcFolder.toString();
 		}
 	}
 
@@ -86,7 +94,6 @@ public class JavaProjectCmd {
 	
 	void getAllfile(String projectPath,List<String> files)
 	{
-		
 		File root = new File(projectPath );
         File[] list = root.listFiles();
 

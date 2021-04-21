@@ -23,6 +23,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 package sharpen.core;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import sharpen.core.framework.*;
 import sharpen.core.io.IO;
 
@@ -50,26 +56,26 @@ class SharpenCommandLineParser extends CommandLineParser {
 	@Override
 	protected void validate() {
 		if((_cmdLine.project == null) && (_cmdLine.help == false)) {
-			System.out.println("Error:unspecified source folder. Please check help.");
+			System.err.println("Error:unspecified source folder. Please check help.");
 			_cmdLine.help =true;
 		}
 	}
 
 	@Override
-	protected void processArgument(String arg) {
+	protected void processArgument(String src) {
 		//Making compatible both for Unix & Window based directory structure
-		arg = arg.replace("\\", "/");
-		if (_cmdLine.project != null) {
-			illegalArgument(arg);
-		}
 		
+		/* Original can not handle ".", "sub-folder" & "..", etc.
+		 * We are using JDK 1.8 or above.
+		src = src.replace("\\", "/");
+		if (_cmdLine.project != null) {
+			illegalArgument(src);
+		}
+
 		if (arg.indexOf('/') > -1) {
-			//String projectName = arg.split("/")[0];
-			//String srcFolder = arg.substring(projectName.length() + 1);
-			
-			String srcFolder = arg.substring(arg.lastIndexOf("/")+1);
-			String projectPath =arg.substring(0,arg.lastIndexOf("/"));
-			String projectName = projectPath.substring(projectPath.lastIndexOf("/")+1);
+			String srcFolder = arg.substring(arg.lastIndexOf("/")+1);  // io/github/odysz/src
+			String projectPath =arg.substring(0,arg.lastIndexOf("/")); // io/github/odysz
+			String projectName = projectPath.substring(projectPath.lastIndexOf("/")+1); // odysz
 			
 			_cmdLine.project = projectName;
 			_cmdLine.projectPath = projectPath;
@@ -77,6 +83,12 @@ class SharpenCommandLineParser extends CommandLineParser {
 		} else {
 			_cmdLine.project = arg;
 		}
+		*/
+
+		Path srcFolder = Paths.get(src).toAbsolutePath();
+		_cmdLine.projectPath = srcFolder.getParent();
+		_cmdLine.project = _cmdLine.projectPath.getName(_cmdLine.projectPath.getNameCount() - 1);
+		_cmdLine.sourceFolders.add(_cmdLine.projectPath.relativize(srcFolder));
 	}
 
 	@Override
@@ -86,9 +98,29 @@ class SharpenCommandLineParser extends CommandLineParser {
 		} else if (areEqual(arg, "-pascalCase+")) {
 			_cmdLine.pascalCase = SharpenCommandLine.PascalCaseOptions.NamespaceAndIdentifiers;			 
 		} else if (areEqual(arg, "-" + SharpenCommandLine.opt_cp)) {
-			_cmdLine.classpath.add(consumeNext());
+			// _cmdLine.classpath.add(consumeNext());
+			String argv = consumeNext();
+			if (argv != null && argv.endsWith("*")) {
+				// eclipse settings
+				String p = argv.replace("*", "");
+				Path path = Paths.get(p);
+
+				Stream.of(new File(p).listFiles())
+					.filter(file -> !file.isDirectory())
+					.map(f -> path.resolve(f.getName()).toAbsolutePath().toString())
+					.collect(Collectors.toCollection(() -> _cmdLine.classpath));
+			}
+			else {
+				// jars that * expanded, by java
+				while (argv != null) {
+					_cmdLine.classpath.add(argv);
+					argv = consumeNextJar();
+					System.out.println(argv);
+				}
+			}
 		} else if (areEqual(arg, "-srcFolder")) {
-			_cmdLine.sourceFolders.add(consumeNext());
+			String p = consumeNext();
+			_cmdLine.sourceFolders.add(Paths.get(p));
 		} else if (areEqual(arg, "-paramCountFileNames")) {
 			_cmdLine.paramCountFileNames = true;
 		} else if (areEqual(arg, "-nativeTypeSystem")) {
@@ -156,6 +188,7 @@ class SharpenCommandLineParser extends CommandLineParser {
 			_cmdLine.help = true;
 		}
 	}
+
 
 	private Configuration.NameMapping consumeNameMapping() {
 		final String from = consumeNext();

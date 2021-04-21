@@ -1,9 +1,31 @@
+# -------------------------------------------------------
+
 # About the fork
 
 The original repo is achieved, and tests can't run without upgrade dependencies.
 
 This fork is intended to release a standby tool of jar (yes there are other forks
 released jar package).
+
+- Add Eclipse project settings
+- Upgrade API level to jdk1.8 (new features like lambda are ignored.
+	See test/resources/api8/StaticLambda.cs.txt)
+- Upgrade org.eclipse.jdt.core to 3.25.0 (to fix internal error)
+- Fix "-cp" option problem - it's actually java's option.
+	But used as sharpen command line arguments (see doc for usage, source folder name: src)
+- Add maven project support - resolve the dependencies with maven
+- Add examples (TODO)
+- Add doc (TODO)
+
+## A discussion about future
+
+Probably the early AST structure before JDK 1.5 is close with c#. But it should
+getting harder and harder to keep both ASTs mapped while both language keep
+extending. E.g., any thoughts about mapping JDK 1.8 stream to C#?
+
+Please let me know if you have any advice.
+
+# -------------------------------------------------------
 
 # Sharpen - Automated Java->C# coversion
 
