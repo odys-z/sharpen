@@ -1,0 +1,14 @@
+namespace Interface2
+{
+	public class Provider : Interface2.IFoo
+	{
+		internal virtual Interface2.IFoo Provide()
+		{
+			return this;
+		}
+
+		public virtual void Method1()
+		{
+		}
+	}
+}

@@ -22,19 +22,212 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 package sharpen.core;
 
 
-import java.util.*;
-import java.util.regex.*;
+import static sharpen.core.framework.Environments.my;
+import static sharpen.core.framework.StaticImports.isStaticImport;
+import static sharpen.core.framework.StaticImports.staticImportMethodBinding;
 
-import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.dom.*;
-import org.eclipse.jdt.internal.core.LambdaMethod;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import sharpen.core.Configuration.*;
-import sharpen.core.csharp.ast.*;
-import sharpen.core.framework.*;
-import static sharpen.core.framework.StaticImports.*;
+import org.eclipse.jdt.core.IBuffer;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.Annotation;
+import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
+import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
+import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
+import org.eclipse.jdt.core.dom.ArrayAccess;
+import org.eclipse.jdt.core.dom.ArrayCreation;
+import org.eclipse.jdt.core.dom.ArrayInitializer;
+import org.eclipse.jdt.core.dom.ArrayType;
+import org.eclipse.jdt.core.dom.AssertStatement;
+import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.BlockComment;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.BooleanLiteral;
+import org.eclipse.jdt.core.dom.BreakStatement;
+import org.eclipse.jdt.core.dom.CastExpression;
+import org.eclipse.jdt.core.dom.CatchClause;
+import org.eclipse.jdt.core.dom.CharacterLiteral;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ConditionalExpression;
+import org.eclipse.jdt.core.dom.ConstructorInvocation;
+import org.eclipse.jdt.core.dom.ContinueStatement;
+import org.eclipse.jdt.core.dom.DoStatement;
+import org.eclipse.jdt.core.dom.EnhancedForStatement;
+import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
+import org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
+import org.eclipse.jdt.core.dom.FieldAccess;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.ForStatement;
+import org.eclipse.jdt.core.dom.IAnnotationBinding;
+import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
+import org.eclipse.jdt.core.dom.InfixExpression;
+import org.eclipse.jdt.core.dom.Initializer;
+import org.eclipse.jdt.core.dom.InstanceofExpression;
+import org.eclipse.jdt.core.dom.Javadoc;
+import org.eclipse.jdt.core.dom.LabeledStatement;
+import org.eclipse.jdt.core.dom.LambdaExpression;
+import org.eclipse.jdt.core.dom.LineComment;
+import org.eclipse.jdt.core.dom.MarkerAnnotation;
+import org.eclipse.jdt.core.dom.MemberRef;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.MethodRef;
+import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.eclipse.jdt.core.dom.NullLiteral;
+import org.eclipse.jdt.core.dom.NumberLiteral;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
+import org.eclipse.jdt.core.dom.ParenthesizedExpression;
+import org.eclipse.jdt.core.dom.PostfixExpression;
+import org.eclipse.jdt.core.dom.PrefixExpression;
+import org.eclipse.jdt.core.dom.QualifiedName;
+import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jdt.core.dom.StringLiteral;
+import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
+import org.eclipse.jdt.core.dom.SuperFieldAccess;
+import org.eclipse.jdt.core.dom.SuperMethodInvocation;
+import org.eclipse.jdt.core.dom.SwitchCase;
+import org.eclipse.jdt.core.dom.SwitchStatement;
+import org.eclipse.jdt.core.dom.SynchronizedStatement;
+import org.eclipse.jdt.core.dom.TagElement;
+import org.eclipse.jdt.core.dom.TextElement;
+import org.eclipse.jdt.core.dom.ThisExpression;
+import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.TryStatement;
+import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.TypeLiteral;
+import org.eclipse.jdt.core.dom.TypeParameter;
+import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.eclipse.jdt.core.dom.WhileStatement;
+import org.eclipse.jdt.core.dom.WildcardType;
 
-import static sharpen.core.framework.Environments.*;
+import sharpen.core.Configuration.MemberMapping;
+import sharpen.core.csharp.ast.CSArrayCreationExpression;
+import sharpen.core.csharp.ast.CSArrayInitializerExpression;
+import sharpen.core.csharp.ast.CSArrayTypeReference;
+import sharpen.core.csharp.ast.CSAttribute;
+import sharpen.core.csharp.ast.CSBaseExpression;
+import sharpen.core.csharp.ast.CSBlock;
+import sharpen.core.csharp.ast.CSBlockComment;
+import sharpen.core.csharp.ast.CSBoolLiteralExpression;
+import sharpen.core.csharp.ast.CSBreakStatement;
+import sharpen.core.csharp.ast.CSCaseClause;
+import sharpen.core.csharp.ast.CSCastExpression;
+import sharpen.core.csharp.ast.CSCatchClause;
+import sharpen.core.csharp.ast.CSCharLiteralExpression;
+import sharpen.core.csharp.ast.CSClass;
+import sharpen.core.csharp.ast.CSClassModifier;
+import sharpen.core.csharp.ast.CSCompilationUnit;
+import sharpen.core.csharp.ast.CSConditionalExpression;
+import sharpen.core.csharp.ast.CSConstructor;
+import sharpen.core.csharp.ast.CSConstructorInvocationExpression;
+import sharpen.core.csharp.ast.CSConstructorModifier;
+import sharpen.core.csharp.ast.CSContinueStatement;
+import sharpen.core.csharp.ast.CSDeclarationExpression;
+import sharpen.core.csharp.ast.CSDeclarationStatement;
+import sharpen.core.csharp.ast.CSDestructor;
+import sharpen.core.csharp.ast.CSDoStatement;
+import sharpen.core.csharp.ast.CSDocNode;
+import sharpen.core.csharp.ast.CSDocTagNode;
+import sharpen.core.csharp.ast.CSDocTextNode;
+import sharpen.core.csharp.ast.CSDocTextOverlay;
+import sharpen.core.csharp.ast.CSEnum;
+import sharpen.core.csharp.ast.CSEvent;
+import sharpen.core.csharp.ast.CSExpression;
+import sharpen.core.csharp.ast.CSExpressionStatement;
+import sharpen.core.csharp.ast.CSExpressionVisitor;
+import sharpen.core.csharp.ast.CSField;
+import sharpen.core.csharp.ast.CSFieldModifier;
+import sharpen.core.csharp.ast.CSForEachStatement;
+import sharpen.core.csharp.ast.CSForStatement;
+import sharpen.core.csharp.ast.CSGotoStatement;
+import sharpen.core.csharp.ast.CSIfStatement;
+import sharpen.core.csharp.ast.CSIndexedExpression;
+import sharpen.core.csharp.ast.CSInfixExpression;
+import sharpen.core.csharp.ast.CSInterface;
+import sharpen.core.csharp.ast.CSLabelStatement;
+import sharpen.core.csharp.ast.CSLineComment;
+import sharpen.core.csharp.ast.CSLockStatement;
+import sharpen.core.csharp.ast.CSMacro;
+import sharpen.core.csharp.ast.CSMacroExpression;
+import sharpen.core.csharp.ast.CSMacroTypeReference;
+import sharpen.core.csharp.ast.CSMember;
+import sharpen.core.csharp.ast.CSMemberReferenceExpression;
+import sharpen.core.csharp.ast.CSMetaMember;
+import sharpen.core.csharp.ast.CSMethod;
+import sharpen.core.csharp.ast.CSMethodBase;
+import sharpen.core.csharp.ast.CSMethodInvocationExpression;
+import sharpen.core.csharp.ast.CSMethodModifier;
+import sharpen.core.csharp.ast.CSNode;
+import sharpen.core.csharp.ast.CSNullLiteralExpression;
+import sharpen.core.csharp.ast.CSNumberLiteralExpression;
+import sharpen.core.csharp.ast.CSParameterized;
+import sharpen.core.csharp.ast.CSParenthesizedExpression;
+import sharpen.core.csharp.ast.CSPostfixExpression;
+import sharpen.core.csharp.ast.CSPrefixExpression;
+import sharpen.core.csharp.ast.CSProperty;
+import sharpen.core.csharp.ast.CSReferenceExpression;
+import sharpen.core.csharp.ast.CSRemovedExpression;
+import sharpen.core.csharp.ast.CSReturnStatement;
+import sharpen.core.csharp.ast.CSStatement;
+import sharpen.core.csharp.ast.CSStringLiteralExpression;
+import sharpen.core.csharp.ast.CSStruct;
+import sharpen.core.csharp.ast.CSSwitchStatement;
+import sharpen.core.csharp.ast.CSThisExpression;
+import sharpen.core.csharp.ast.CSThrowStatement;
+import sharpen.core.csharp.ast.CSTryStatement;
+import sharpen.core.csharp.ast.CSType;
+import sharpen.core.csharp.ast.CSTypeDeclaration;
+import sharpen.core.csharp.ast.CSTypeParameter;
+import sharpen.core.csharp.ast.CSTypeParameterProvider;
+import sharpen.core.csharp.ast.CSTypeReference;
+import sharpen.core.csharp.ast.CSTypeReferenceExpression;
+import sharpen.core.csharp.ast.CSTypeofExpression;
+import sharpen.core.csharp.ast.CSUncheckedExpression;
+import sharpen.core.csharp.ast.CSUsing;
+import sharpen.core.csharp.ast.CSUsingStatement;
+import sharpen.core.csharp.ast.CSVariableDeclaration;
+import sharpen.core.csharp.ast.CSVisibility;
+import sharpen.core.csharp.ast.CSWhileStatement;
+import sharpen.core.csharp.ast.CSharpCode;
+import sharpen.core.framework.ASTResolver;
+import sharpen.core.framework.ASTUtility;
+import sharpen.core.framework.BindingUtils;
+import sharpen.core.framework.ByRef;
+import sharpen.core.framework.DynamicVariable;
+import sharpen.core.framework.Function;
+import sharpen.core.framework.JavadocUtility;
+import sharpen.core.framework.Types;
 
 public class CSharpBuilder extends ASTVisitor {
 
@@ -2617,16 +2810,7 @@ public class CSharpBuilder extends ASTVisitor {
 		return ((Number) ((Expression) expression).resolveConstantExpressionValue()).intValue();
 	}
 
-	private CSArrayCreationExpression mapSingleArrayCreation(ArrayCreation node) {
-		CSArrayCreationExpression expression = new CSArrayCreationExpression(mappedTypeReference(componentType(node
-		        .getType())));
-		if (!node.dimensions().isEmpty()) {
-			expression.length(mapExpression((Expression) node.dimensions().get(0)));
-		}
-		expression.initializer(mapArrayInitializer(node));
-		return expression;
-	}
-
+	//////////////////// because ArrayType changed it's way after JLS8 //////////////
 	/* ody:
 	private CSArrayCreationExpression mapSingleArrayCreation(ArrayCreation node) {
 		CSArrayCreationExpression expression;
@@ -2641,6 +2825,21 @@ public class CSharpBuilder extends ASTVisitor {
 		return expression;
 	}
 	*/
+
+	/**Handling initializer with only 1 dimension size.
+	 * @param node
+	 * @return
+	 */
+	private CSArrayCreationExpression mapSingleArrayCreation(ArrayCreation node) {
+		CSArrayCreationExpression expression = new CSArrayCreationExpression(
+					mappedArrayTypeReference(node.getType(), node.getType().getDimensions() - 1));
+
+		if (!node.dimensions().isEmpty()) {
+			expression.length(mapExpression((Expression) node.dimensions().get(0)));
+		}
+		expression.initializer(mapArrayInitializer(node));
+		return expression;
+	}
 
 	private CSArrayInitializerExpression mapArrayInitializer(ArrayCreation node) {
 		return (CSArrayInitializerExpression) mapExpression(node.getInitializer());
@@ -2674,10 +2873,10 @@ public class CSharpBuilder extends ASTVisitor {
 	}
 
 	public ITypeBinding componentType(ArrayType type) {
-//		ody: jdk 1.8 .()
-//		return type
-//				.getComponentType()
-//				.resolveBinding();
+		// ody: jdk 1.8 ArrayType#getComponent() is deprecated
+		// return type
+		// 		.getComponentType()
+		// 		.resolveBinding();
 		return type.getDimensions() > 1 ?
 				type.resolveBinding() : type.getElementType().resolveBinding();
 	}
@@ -2764,8 +2963,9 @@ public class CSharpBuilder extends ASTVisitor {
 				} else {
 					ITypeBinding stype = pushExpectedType (switchType);
 
+					@SuppressWarnings("deprecation")
 					CSExpression caseExpression = mapExpression(sc.getExpression());
-								// JLS14:
+								// for JLS14:
 								// mapExpression((Expression) sc.expressions().get(0));
 					current.addExpression(caseExpression);
 					popExpectedType(stype);
@@ -4168,7 +4368,19 @@ public class CSharpBuilder extends ASTVisitor {
 
 	private CSTypeReferenceExpression mappedArrayTypeReference(ITypeBinding type) {
 		return new CSArrayTypeReference(mappedTypeReference(type.getElementType()), type.getDimensions());
+	}
 
+	/**create cs array type reference.
+	 * array dimesion can be specified as the it's need when creating array,
+	 * the dimension size won't match the declaration's dimension.
+	 * 
+	 * <p>Note by ody: this modification by passed the general function interface: {@link #mappedTypeReference(ITypeBinding)}.</p>
+	 * @param type
+	 * @param declaredDimension
+	 * @return
+	 */
+	private CSTypeReferenceExpression mappedArrayTypeReference(ArrayType type, int declaredim) {
+		return new CSArrayTypeReference(mappedTypeReference(type.getElementType()), declaredim);
 	}
 
 	protected final String mappedTypeName(ITypeBinding type) {

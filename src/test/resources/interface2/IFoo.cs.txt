@@ -1,0 +1,7 @@
+namespace Interface2
+{
+	public interface IFoo
+	{
+		void Method1();
+	}
+}

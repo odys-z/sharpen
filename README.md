@@ -17,6 +17,14 @@ released jar package).
 - Add examples (TODO)
 - Add doc (TODO)
 
+## A discussion about future
+
+Probably the early AST structure before JDK 1.5 is close with c#. But it should
+getting harder and harder to keep both ASTs mapped while both language keep
+extending. E.g., any thoughts about mapping JDK 1.8 stream to C#?
+
+Please let me know if you have any advice.
+
 # -------------------------------------------------------
 
 # Sharpen - Automated Java->C# coversion

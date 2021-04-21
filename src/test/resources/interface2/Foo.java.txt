@@ -1,0 +1,6 @@
+package interface2;
+
+public interface Foo {
+	void method1();
+}
+
