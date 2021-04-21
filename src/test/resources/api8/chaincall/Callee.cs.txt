@@ -1,0 +1,10 @@
+namespace Api8.Chaincall
+{
+	public class Callee
+	{
+		public virtual Api8.Chaincall.Callee F1()
+		{
+			return this;
+		}
+	}
+}

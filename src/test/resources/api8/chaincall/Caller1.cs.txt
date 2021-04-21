@@ -1,0 +1,15 @@
+namespace Api8.Chaincall
+{
+	public class Caller1
+	{
+		public virtual void Call1()
+		{
+			new Api8.Chaincall.Callee().F1();
+		}
+		/* later
+		public Callee Call2() {
+		return new Callee().f1();
+		}
+		*/
+	}
+}
