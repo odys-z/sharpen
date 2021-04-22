@@ -22,8 +22,11 @@ public class NativeInterface2TestCase extends AbstractConversionTestCase {
 	
 	public Configuration newInterface2Configuration() {
 		Configuration configuration = newPascalCasePlusConfiguration();
+		configuration.setIgnoreErrors(true);
 		configuration.enableNativeInterfaces();
 		configuration.enableNativeTypeSystem();
+		
+		configuration.setIgnoreErrors(Boolean.valueOf(System.getProperty("ie")));
 		return configuration;
 	}
 }

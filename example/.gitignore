@@ -1,2 +1,5 @@
 *\.net
-semantic
+target
+semantic/DA
+semantic/jserv
+semantic/transact

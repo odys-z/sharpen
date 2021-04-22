@@ -13,6 +13,7 @@ released jar package).
 - Upgrade org.eclipse.jdt.core to 3.25.0 (to fix internal error)
 - Fix "-cp" option problem - it's actually java's option.
 	But used as sharpen command line arguments (see doc for usage, source folder name: src)
+	This fork use -clsp=.../* for multiple jars.
 - Add maven project support - resolve the dependencies with maven
 - Add examples (TODO)
 - Add doc (TODO)
@@ -24,6 +25,15 @@ getting harder and harder to keep both ASTs mapped while both language keep
 extending. E.g., any thoughts about mapping JDK 1.8 stream to C#?
 
 Please let me know if you have any advice.
+
+## Test the Fork
+
+This fork added some test case that's not easy to be handled. As it's only for
+a temporary solution for Anclient.cs, it's just ignored some error. To test, use
+
+```
+    mvn test -Die=true
+```
 
 # -------------------------------------------------------
 

@@ -16,14 +16,7 @@ public class SharpenCmd {
 			// So we use "-Dclsp=.../*" for multiple jars
 			// actually we should use apache.common.CommandLineParser 
 			// Let my know if I am wrong
-
-			// for (String arg: args) System.out.println(arg);
 			
-//			String[] argscls = new String[args.length + 2];
-//			System.arraycopy(args, 0, argscls, 0, args.length);
-//			argscls[argscls.length - 2] = "-" + SharpenCommandLine.opt_cp;
-//			argscls[argscls.length - 1] = System.getProperty("clsp");
-//			AppCmd.start(argscls);
 			AppCmd.start(args);
 		} catch (Exception ex) {
 			System.out.println("Faied to run. Exception:" + ex.getMessage());

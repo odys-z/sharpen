@@ -44,16 +44,22 @@ public class SharpenApplication {
 	public void start(String[] args) throws Exception {
 		try {
 			_args = SharpenCommandLine.parse(args);
+			if (Boolean.valueOf(System.getProperty("ie")))
+				_args.continueOnError = true;
+
 			if(_args.help==true){
 				displayHelp();
 				return;
 			}
 			System.err.println("Configuration Class: " + _args.configurationClass);
 			System.err.println("Configuration Class: " +_args.runtimeTypeName);
+
 			Configuration config = ConfigurationFactory.newExternalConfiguration(_args.configurationClass, _args.runtimeTypeName, newProgressMonitor());
 			if(config == null)
 				config = ConfigurationFactory.newConfiguration(_args.configurationClass, _args.runtimeTypeName);
+			config.setIgnoreErrors(_args.continueOnError);
 			Sharpen.getDefault().configuration(config);
+
 			safeRun();
 		} catch (Exception x) {
 			System.err.println("ERROR: " + x.getMessage());

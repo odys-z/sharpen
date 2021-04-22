@@ -1,0 +1,4 @@
+# mvn dependency:copy-dependencies
+# java -jar ../sharpencore-1.0.0-jar-with-dependencies.jar jserv/src/main/java -clsp target/dependency/* -ie
+# java -jar -Die=true ../sharpencore-1.0.0-jar-with-dependencies.jar DA/src/main/java -clsp target/dependency/*
+java -jar  -Die=true ../sharpencore-1.0.0-jar-with-dependencies.jar transact/src/main/java -clsp target/dependency/*

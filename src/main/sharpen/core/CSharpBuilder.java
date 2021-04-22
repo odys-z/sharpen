@@ -335,8 +335,14 @@ public class CSharpBuilder extends ASTVisitor {
 		if (null == warningHandler() || null == _ast) {
 			throw new IllegalStateException();
 		}
-		_ast.accept(this);
-		visit(_ast.getCommentList());
+		try {
+			_ast.accept(this);
+			visit(_ast.getCommentList());
+		} catch (Exception x) {
+			x.printStackTrace();
+			if (!_configuration.getIgnoreErrors())
+				throw x;
+		}
 	}
 
 	@Override
